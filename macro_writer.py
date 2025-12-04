@@ -57,11 +57,15 @@ def create_trans_macro_file(
         return
 
     # Prepare directories and file paths
-    spec_baseDir = (home_directory + "\\" + data_folder).replace("\\", "/")
+    # spec_baseDir = (home_directory + "\\" + data_folder).replace("\\", "/")
+    # spec_baseDir = Path(spec_baseDir)
+    # spec_baseDir = Path(*spec_baseDir.parts[2:])
+    # spec_baseDir = spec_baseDir.as_posix()
 
-    spec_baseDir = Path(spec_baseDir)
-    spec_baseDir = Path(*spec_baseDir.parts[2:])
-    spec_baseDir = "/" + spec_baseDir.as_posix()
+    spec_dir = Path(home_directory)
+    spec_dir = Path(*spec_dir.parts[2:])
+    spec_dir = spec_dir.as_posix()
+
 
     rocking_lines = ""
     if rock_lpx != 0.0:
@@ -79,23 +83,23 @@ def create_trans_macro_file(
     # Detector commands
     detector_map = {
         "SAXS": [
-            'unix(sprintf("mkdir -p %s/SAXS", pilatus_baseDir2))',
+            'unix(sprintf("mkdir -p %s/SAXS", pilatus_baseDir))',
             'pd enable # Enable SAXS 1M detector',
-            'eval(sprintf("pd savepath %s/SAXS", pilatus_baseDir2))',
+            'eval(sprintf("pd savepath %s/SAXS", pilatus_baseDir))',
             'pd save # save SAXS data',
             'pd disable  # Disable SAXS detector after scan'
         ],
         "WAXS": [
-            'unix(sprintf("mkdir -p %s/WAXS", pilatus_baseDir2))',
+            'unix(sprintf("mkdir -p %s/WAXS", pilatus_baseDir))',
             'pdw enable #Enable WAXS detector',
-            'eval(sprintf("pd savepath %s/WAXS", pilatus_baseDir2))',
+            'eval(sprintf("pd savepath %s/WAXS", pilatus_baseDir))',
             'pdw save	# save WAXS data',
             'pdw disable  # Disable WAXS detector after scan'
         ],
         "Both": [
-            'unix(sprintf("mkdir -p %s/SAXS %s/WAXS", pilatus_baseDir2, pilatus_baseDir2))',
+            'unix(sprintf("mkdir -p %s/SAXS %s/WAXS", pilatus_baseDir, pilatus_baseDir))',
             'pd enable # Enable SAXS 1M detector \n         pdw enable #Enable WAXS detector',
-            'eval(sprintf("pd savepath %s/SAXS", pilatus_baseDir2)) \n          eval(sprintf("pdw savepath %s/WAXS", pilatus_baseDir2))',
+            'eval(sprintf("pd savepath %s/SAXS", pilatus_baseDir)) \n          eval(sprintf("pdw savepath %s/WAXS", pilatus_baseDir))',
             'pd save # save SAXS data \n            pdw save	# save WAXS data',
             'pd disable  # Disable SAXS detector after scan \n          pdw disable  # Disable WAXS detector after scan'
         ]
@@ -108,7 +112,7 @@ def create_trans_macro_file(
                 if (pos_ctr % dark_frequency == 0) {{
                 sclose
                 sleep({sleep_time})
-                data_dir = sprintf("dark_run%d_pos%d_", run_ctr, pos_ctr)  # No trailing '/'
+                data_dir = sprintf("dark_run%d_loop%d_pos%d", run_ctr, loop_ctr, pos_ctr)  # No trailing '/'
                 p data_dir
 
                 p "Taking data"
@@ -117,13 +121,13 @@ def create_trans_macro_file(
 
                 {detector_map.get(AXS, [])[1]}
 
-                eval(sprintf("newfile %s/%s", spec_baseDir, data_dir))
+                eval(sprintf("newfile %s/%s", pilatus_baseDir, data_dir))
                 {detector_map.get(AXS, [])[2]}
 
                 {detector_map.get(AXS, [])[3]}
                 
                 # Take the actual data
-                eval(sprintf("loopscan %d %f %f", dark_num_images, dark_exposure, wait_time))
+                eval(sprintf("loopscan %d %d %d", dark_num_images, dark_exposure, wait_time))
 
                 {detector_map.get(AXS, [])[4]}
                 # Implement sleep time between scans if required
@@ -157,8 +161,10 @@ num_positions = {len(sample_parameters['lpxs'])}
 #File name and location
 ############################
 
-spec_baseDir = "{spec_baseDir + "/"}" 		#Needs trailing '/'
-pilatus_baseDir2 = sprintf('~/data/%s', spec_baseDir)
+cd ~/data
+cd {spec_dir}
+
+pilatus_baseDir = "{data_folder}"
 
 loop_ctr = 0
 pos_ctr = 0
@@ -167,7 +173,7 @@ rock no
 run_ctr += 1
 
 # Execute directory creation using Linux based commands
-unix(sprintf('mkdir -p %s', pilatus_baseDir2))
+unix(sprintf("mkdir -p %s", pilatus_baseDir))
 {detector_map.get(AXS, [])[0]}
 
 pd stop
@@ -205,14 +211,14 @@ for (loop_ctr=0; loop_ctr < num_loops; loop_ctr++) {{
 
         {detector_map.get(AXS, [])[1]}
         
-        eval(sprintf("newfile %s/%s", spec_baseDir, data_dir))
+        eval(sprintf("newfile %s/%s", pilatus_baseDir, data_dir))
         
         {detector_map.get(AXS, [])[2]}
         
         {detector_map.get(AXS, [])[3]}
         
         #Take the actual data
-        eval(sprintf("loopscan %d %f %f", num_images, exposure_time, wait_time))
+        eval(sprintf("loopscan %d %d %d", num_images, exposure_time, wait_time))
         
         {detector_map.get(AXS, [])[4]}
 
@@ -226,6 +232,7 @@ for (loop_ctr=0; loop_ctr < num_loops; loop_ctr++) {{
         sclose
     }}       
 }}
+cd ~/data
 """
 
     file_path = os.path.join(home_directory, f"{macro_name}.txt")
@@ -253,7 +260,7 @@ for (loop_ctr=0; loop_ctr < num_loops; loop_ctr++) {{
 
 
 # Main function to create the macro text file with user inputs
-def create_photos_macro_file(root, home_directory, data_folder, macro_name, sample_parameters):
+def create_photos_macro_file(root, home_directory, macro_name, sample_parameters):
     """
     Create a macro text file for preliminary photos of samples.
     """
@@ -275,8 +282,12 @@ def create_photos_macro_file(root, home_directory, data_folder, macro_name, samp
 
     macro_name += "_prelim_photos"
 
-    spec_baseDir = os.path.join(home_directory, data_folder).replace("\\", "/")
-    spec_baseDir = spec_baseDir.replace("X:/bl1-5/", "")
+    # spec_baseDir = os.path.join(home_directory, data_folder).replace("\\", "/")
+    # spec_baseDir = spec_baseDir.replace("X:/bl1-5/", "")
+
+    spec_dir = Path(home_directory)
+    spec_dir = Path(*spec_dir.parts[2:])
+    spec_dir = spec_dir.as_posix()
 
     content = f"""
 #Define the sample names
@@ -286,6 +297,9 @@ sample_names = {sample_parameters['sample_names']}
 lpx_positions = {sample_parameters['lpxs']}  # x positions
 lpy_positions = {sample_parameters['lpys']}    # y positions
 num_positions = {len(sample_parameters['lpxs'])}  # Get the number of coordinates
+
+cd ~/data
+cd {spec_dir}
 
  # Loop through coordinates
 for (pos_ctr = 0; pos_ctr < num_positions; pos_ctr++) {{
@@ -299,6 +313,7 @@ for (pos_ctr = 0; pos_ctr < num_positions; pos_ctr++) {{
     epics_put("MSD_Local_Cameras:BL1-5_bottom_camera:save_frame", base_filename)
     epics_put("MSD_Local_Cameras:BL1-5_top_camera:save_frame", base_filename)
 }}
+cd ~/data
 """
 
     file_path = os.path.join(home_directory, f"{macro_name}.txt")

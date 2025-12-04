@@ -310,7 +310,6 @@ class MacroGeneratorGUI:
         create_photos_macro_file(
             self.root,
             self.home_directory_var.get(),
-            self.data_folder_var.get(),
             self.macro_name_var.get(),
             self.sample_parameters
         )
