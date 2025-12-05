@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from data_popup_PyQt_V1 import open_manual_data_popup
 from excel_data_popup import open_excel_data_popup, load_data
-from macro_writer import create_trans_macro_file, create_photos_macro_file
+from macro_writer_trans import create_trans_macro_file, create_photos_macro_file
 import sys
 import os
 

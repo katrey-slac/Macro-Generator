@@ -1,4 +1,4 @@
-# macro_writer.py
+# macro_writer_trans.py
 import os
 from tkinter import messagebox
 from success_SPEC_copy import show_success_popup
@@ -56,16 +56,10 @@ def create_trans_macro_file(
                              "Please select scattering range.", parent=root)
         return
 
-    # Prepare directories and file paths
-    # spec_baseDir = (home_directory + "\\" + data_folder).replace("\\", "/")
-    # spec_baseDir = Path(spec_baseDir)
-    # spec_baseDir = Path(*spec_baseDir.parts[2:])
-    # spec_baseDir = spec_baseDir.as_posix()
 
     spec_dir = Path(home_directory)
     spec_dir = Path(*spec_dir.parts[2:])
     spec_dir = spec_dir.as_posix()
-
 
     rocking_lines = ""
     if rock_lpx != 0.0:
@@ -109,36 +103,41 @@ def create_trans_macro_file(
     dark_frame_block = ""
     if dark_frequency != 0:
         dark_frame_block = f"""
-                if (pos_ctr % dark_frequency == 0) {{
-                sclose
-                sleep({sleep_time})
-                data_dir = sprintf("dark_run%d_loop%d_pos%d", run_ctr, loop_ctr, pos_ctr)  # No trailing '/'
-                p data_dir
+        ########################
+        # Dark data acquisition
+        ########################
+        
+        if (pos_ctr % dark_frequency == 0) {{
+        sclose
+        sleep({sleep_time})
+        data_dir = sprintf("dark_run%d_loop%d_pos%d", run_ctr, loop_ctr, pos_ctr)  # No trailing '/'
+        p data_dir
 
-                p "Taking data"
+        p "Taking data"
 
-                wait_time = 0
+        wait_time = 0
 
-                {detector_map.get(AXS, [])[1]}
+        {detector_map.get(AXS, [])[1]}
 
-                eval(sprintf("newfile %s/%s", pilatus_baseDir, data_dir))
-                {detector_map.get(AXS, [])[2]}
+        eval(sprintf("newfile %s/%s", pilatus_baseDir, data_dir))
+        {detector_map.get(AXS, [])[2]}
 
-                {detector_map.get(AXS, [])[3]}
-                
-                # Take the actual data
-                eval(sprintf("loopscan %d %d %d", dark_num_images, dark_exposure, wait_time))
+        {detector_map.get(AXS, [])[3]}
+        
+        # Take the actual data
+        eval(sprintf("loopscan %d %d %d", dark_num_images, dark_exposure, wait_time))
 
-                {detector_map.get(AXS, [])[4]}
-                # Implement sleep time between scans if required
-                if (sleep_time > 0) {{
-                printf("You can hit control-C for the next %i seconds....\\n", sleep_time)
-                sleep(sleep_time)
-                p ".... DON'T hit control-C until we sleep again\\n"
-                sopen
-                }}
-                }}
-            """
+        {detector_map.get(AXS, [])[4]}
+        
+        # Implement sleep time between scans if required
+        if (sleep_time > 0) {{
+        printf("You can hit control-C for the next %i seconds....\\n", sleep_time)
+        sleep(sleep_time)
+        p ".... DON'T hit control-C until we sleep again\\n"
+        sopen
+        }}
+        }}
+    """
 
     # Macro content
     content = f"""
@@ -183,7 +182,11 @@ sopen
 
 for (loop_ctr=0; loop_ctr < num_loops; loop_ctr++) {{
     for (pos_ctr = 0; pos_ctr < num_positions; pos_ctr++) {{    # Loop through coordinates
-        {dark_frame_block}
+{dark_frame_block}
+        ############################
+        # Sample data acquisition
+        ############################
+
         base_filename = sample_names[pos_ctr]
 
         # Move to the next coordinate pair
@@ -206,8 +209,6 @@ for (loop_ctr=0; loop_ctr < num_loops; loop_ctr++) {{
         
         p "Taking data"
         {rocking_lines.strip()}
-
-        wait_time = 0
 
         {detector_map.get(AXS, [])[1]}
         

@@ -2,11 +2,11 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from data_popup_V1 import open_manual_data_popup
 from excel_data_popup import open_excel_data_popup, load_data
-from macro_writer import create_trans_macro_file, create_photos_macro_file
+from macro_writer_trans import create_trans_macro_file, create_photos_macro_file
 
 import os
 
-class MacroGeneratorGUI:
+class MacroGeneratorTransmissionGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Macro Generator")
@@ -34,6 +34,7 @@ class MacroGeneratorGUI:
         self.camera_vars = {}
 
         # Build GUI
+        self.create_title()
         self.create_folder_section()
         self.create_scan_params_section()
         self.create_dark_and_rocking_section()
@@ -43,6 +44,20 @@ class MacroGeneratorGUI:
         self.create_footer()
 
     # --- GUI Sections ---
+    def create_title(self):
+        header = tk.Frame(self.root, bg="DeepSkyBlue4")
+        header.pack(fill="x")
+
+        title_label = tk.Label(
+            header,
+            text="Transmission",
+            font=("Helvetica", 20, "bold"),
+            fg="white",
+            bg="DeepSkyBlue4"
+        )
+        title_label.pack(pady=5)
+
+
     def create_folder_section(self):
         frame = tk.LabelFrame(self.root, text="Save Location")
         frame.pack(padx=10, pady=10, fill="x")
@@ -321,5 +336,5 @@ class MacroGeneratorGUI:
 # -------------------------------
 if __name__ == "__main__":
     root = tk.Tk()
-    app = MacroGeneratorGUI(root)
+    app = MacroGeneratorTransmissionGUI(root)
     root.mainloop()
