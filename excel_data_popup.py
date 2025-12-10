@@ -24,12 +24,12 @@ def load_data(filepath):
     base_coords = {
         key.lower(): value
         for key, value in {
-            "washers_v1": generate_position_dict(0.5, 0.5, 3, 5, 1, 1),
-            "Films - Circles V1": generate_position_dict(7, 6, 7, 7, 11, 12.33),
-            "Capillary - 1.5 OD": generate_position_dict(1.15, 50, 1, 15, 5.5, 0),
-            "Capillary - 1.0 OD": generate_position_dict(1.15, 50, 1, 15, 5.5, 0),
-            "Capillary - 2.0 OD": generate_position_dict(1.15, 50, 1, 15, 5.5, 0),
-            "NMR - 5.0 OD": generate_position_dict(1.15, 50, 1, 15, 5.5, 0)
+            "washers_v1": generate_position_dict(-0.5, 0.5, 3, 5, -1, 1),
+            "Films - Circles V1": generate_position_dict(-7, 6, 7, 7, -11, 12.33),
+            "Capillary - 1.5 OD": generate_position_dict(-1.15, 50, 1, 15, -5.5, 0),
+            "Capillary - 1.0 OD": generate_position_dict(-1.15, 50, 1, 15, -5.5, 0),
+            "Capillary - 2.0 OD": generate_position_dict(-1.15, 50, 1, 15, -5.5, 0),
+            "NMR - 5.0 OD": generate_position_dict(-1.15, 50, 1, 15, -5.5, 0)
         }.items()
     }
 
