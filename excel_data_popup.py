@@ -8,8 +8,36 @@ def load_data(filepath):
     """Load Excel file and compute coordinates."""
     df = pd.read_excel(filepath, header=3, usecols="A:D", sheet_name="Fill out")
 
-    # Remove empty rows that cause crashes
-    df = df.dropna(subset=["Cassette Type", "Position"])
+    # List of required columns (change as needed)
+    required = ["Cassette #", "Cassette Type", "Position", "Sample Name*"]
+
+    # Check for rows where *some* columns are filled but others are missing
+    incomplete_rows = []
+
+    for idx, row in df.iterrows():
+        # Count how many required columns are non-null
+        non_null = row[required].notna().sum()
+        if 0 < non_null < len(required):
+            # This row has *some* data but not all → invalid row
+            incomplete_rows.append((idx + 2, row[required].to_dict()))
+            # +2 because Excel rows start at 1 and Pandas header is row 1
+
+    if incomplete_rows:
+        # Build multi-line error message
+        msg = "Your Excel file has incomplete rows:\n\n"
+        for rnum, data in incomplete_rows:
+            msg += f"- Row {rnum}: {data}\n"
+
+        msg += "\nEach row must be fully filled out or completely empty."
+
+        # Show popup message
+        messagebox.showerror("Excel Data Error", msg)
+
+        # Stop further processing
+        return None, None
+
+    # Drop completely empty rows to avoid errors
+    df = df.dropna(how="all")
 
     def generate_position_dict(x_start, y_start, rows, cols, x_spacing, y_spacing):
         positions = {}
