@@ -275,15 +275,17 @@ class MacroGeneratorTransmissionGUI:
         file = filedialog.askopenfilename()
         if file:
             self.excel_data_file_var.set(file)
+            # Reset state so new file loads properly
+            self.df = None
+            self.base_coords = None
+            self.sample_parameters = {}
             print(self.excel_data_file_var.get())
 
     def load_excel_file(self):
-        # Only load if not already loaded
-        if self.df is None or self.base_coords is None:
-            self.df, self.base_coords = load_data(self.excel_data_file_var.get())
-            self.sample_parameters["sample_names"] = list(self.df["Sample Name*"])
-            self.sample_parameters["lpxs"] = list(self.df["x"])
-            self.sample_parameters["lpys"] = list(self.df["y"])
+        self.df, self.base_coords = load_data(self.excel_data_file_var.get())
+        self.sample_parameters["sample_names"] = list(self.df["Sample Name*"])
+        self.sample_parameters["lpxs"] = list(self.df["x"])
+        self.sample_parameters["lpys"] = list(self.df["y"])
 
     def open_excel_data_popup(self):
         # Check if a file has been selected

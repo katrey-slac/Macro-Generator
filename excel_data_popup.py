@@ -8,6 +8,9 @@ def load_data(filepath):
     """Load Excel file and compute coordinates."""
     df = pd.read_excel(filepath, header=3, usecols="A:D", sheet_name="Fill out")
 
+    # Remove empty rows that cause crashes
+    df = df.dropna(subset=["Cassette Type", "Position"])
+
     def generate_position_dict(x_start, y_start, rows, cols, x_spacing, y_spacing):
         positions = {}
         pos_counter = 1
@@ -41,7 +44,7 @@ def load_data(filepath):
         slot = row["Cassette #"]
         bx, by = base_coords[ctype][pos]
         columns = 4
-        x_spacing = 110
+        x_spacing = -110
         y_spacing = 98
         x_shift = ((slot - 1) % columns) * x_spacing
         y_shift = ((slot - 1) // columns) * y_spacing
